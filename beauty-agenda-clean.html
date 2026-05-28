@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MOI DOM">
+<meta name="theme-color" content="#3d1a2e">
+<title>MOI DOM 💅</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--plum:#3d1a2e;--plum2:#6b2d5e;--rose:#c47a9e;--rose-light:#f3e0ec;--rose-pale:#f8eff5;--cream:#fdf6f0;--gold:#d4a853;--gold2:#e8c87a;--text:#3d1a2e;--muted:#9b6b8a;--border:#e0c8d8;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--text);overscroll-behavior:none}
+  ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+  #app{display:flex;flex-direction:column;height:100dvh}
+  #header{background:linear-gradient(135deg,var(--plum) 0%,var(--plum2) 100%);padding:calc(var(--safe-top) + .9rem) 1rem .8rem;flex-shrink:0;z-index:50}
+  .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .header-title{font-family:'Playfair Display',serif;font-size:1.45rem;color:#f7dcea;letter-spacing:.3px}
+  .header-date{font-size:.73rem;color:rgba(247,220,234,.55);margin-top:.1rem}
+  .header-stats{display:flex;gap:.6rem}
+  .stat-pill{text-align:center;background:rgba(255,255,255,.12);border-radius:1rem;padding:.35rem .8rem}
+  .stat-val{font-size:1.2rem;font-weight:700;color:#f7dcea;line-height:1}.stat-val.gold{color:var(--gold2)}
+  .stat-label{font-size:.65rem;color:rgba(247,220,234,.65)}
+  .tabs{display:flex;gap:.3rem}
+  .tab-btn{flex:1;border:none;border-radius:2rem;padding:.42rem .2rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.72rem;transition:all .2s;background:rgba(255,255,255,.12);color:rgba(247,220,234,.7)}
+  .tab-btn.active{background:var(--rose);color:#fff;box-shadow:0 4px 12px rgba(196,122,158,.5)}
+  #content{flex:1;overflow-y:auto;padding:1.1rem 1rem;padding-bottom:calc(var(--safe-bot) + 1rem)}
+  .card{background:#fff9f5;border-radius:1.1rem;padding:1rem 1.1rem;margin-bottom:.65rem;border:1.5px solid #f0dce8}
+  .card-row{display:flex;justify-content:space-between;align-items:flex-start}
+  .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+  .month-nav button{background:none;border:none;font-size:1.5rem;color:var(--rose);cursor:pointer;padding:0 .3rem}
+  .month-nav h3{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--text)}
+  .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:.3rem}
+  .cal-dow{text-align:center;font-size:.68rem;font-weight:700;color:var(--muted);padding:.2rem 0}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.25rem;margin-bottom:1rem}
+  .day-cell{border:none;border-radius:.75rem;padding:.4rem .1rem;cursor:pointer;background:#fff9f5;color:var(--text);transition:all .2s;font-family:'DM Sans',sans-serif;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .day-cell.other-month{background:transparent;color:#cbb0c0}
+  .day-cell.today{background:var(--rose-light)}
+  .day-cell.selected{background:var(--rose);color:#fff;box-shadow:0 4px 12px rgba(196,122,158,.4)}
+  .day-cell.dayoff{background:#f5f0ff;color:#9b6b8a}
+  .day-cell.holiday{background:#fff0f0;color:#c0504a}
+  .day-cell.selected.dayoff,.day-cell.selected.holiday{background:var(--rose);color:#fff}
+  .day-cell .dc-num{font-size:.97rem;font-weight:700;line-height:1}
+  .day-dot{width:5px;height:5px;border-radius:50%;background:var(--rose);margin:3px auto 0}
+  .day-cell.selected .day-dot{background:#fff}
+  .day-cell.other-month .day-dot{background:#cbb0c0}
+  .day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .day-header h4{font-family:'Playfair Display',serif;font-size:.98rem;color:var(--text);text-transform:capitalize}
+  .appt-time{background:var(--rose);color:#fff;border-radius:2rem;padding:.18rem .65rem;font-size:.78rem;font-weight:700;display:inline-block;margin-bottom:.3rem}
+  .appt-client{font-weight:700;font-size:.97rem}
+  .appt-service{font-size:.85rem;color:var(--muted);margin-top:.15rem}
+  .appt-notes{font-size:.78rem;color:#b08898;font-style:italic;margin-top:.15rem}
+  .btn{border:none;border-radius:2rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;justify-content:center}
+  .btn-primary{background:var(--rose);color:#fff;box-shadow:0 4px 14px rgba(196,122,158,.35)}
+  .btn-secondary{background:var(--rose-pale);color:var(--text)}
+  .btn-danger{background:#e57373;color:#fff}
+  .btn-sm{padding:.38rem .9rem;font-size:.8rem}.btn-md{padding:.6rem 1.3rem;font-size:.9rem}
+  .btn-row{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem}
+  .icon-btn{padding:.35rem .55rem;font-size:.85rem}
+  .search-bar{display:flex;gap:.6rem;align-items:center;margin-bottom:1rem}
+  .search-bar input{flex:1;padding:.55rem 1rem;border:1.5px solid var(--border);border-radius:2rem;background:#fff9f5;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none}
+  .service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.65rem}
+  .service-card{background:#fff9f5;border-radius:1.1rem;padding:.9rem 1rem;border:1.5px solid #f0dce8}
+  .service-name{font-weight:700;color:var(--text);font-size:.95rem;margin-bottom:.5rem}
+  .service-desc{font-size:.78rem;color:var(--muted);font-style:italic;margin-bottom:.5rem}
+  .badge-row{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.6rem}
+  .badge{border-radius:2rem;padding:.18rem .65rem;font-size:.77rem;font-weight:600}
+  .badge-rose{background:var(--rose-pale);color:#7a4a6a}
+  .badge-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--plum)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(44,22,33,.55);display:flex;align-items:flex-end;justify-content:center;z-index:200;backdrop-filter:blur(3px);padding-bottom:var(--safe-bot)}
+  .modal-box{background:var(--cream);border-radius:1.5rem 1.5rem 0 0;padding:1.5rem 1.2rem;width:100%;max-width:600px;max-height:90dvh;overflow-y:auto;box-shadow:0 -8px 40px rgba(44,22,33,.2);animation:slideUp .25s ease}
+  @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem}
+  .modal-title{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--text)}
+  .modal-close{background:none;border:none;font-size:1.3rem;color:var(--muted);cursor:pointer;line-height:1}
+  .field{margin-bottom:.85rem}
+  .field label{display:block;font-size:.8rem;color:#7a4a6a;font-weight:600;margin-bottom:.28rem}
+  .field input,.field select,.field textarea{width:100%;padding:.58rem .9rem;border:1.5px solid var(--border);border-radius:.75rem;background:#fff9f5;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;appearance:none}
+  .field textarea{resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  .info-box{background:var(--rose-pale);border-radius:.75rem;padding:.55rem .9rem;font-size:.85rem;color:#7a4a6a;margin-bottom:.85rem}
+  .empty{text-align:center;padding:2.5rem 0;color:#b08898;font-style:italic}
+  .empty-icon{font-size:2rem;margin-bottom:.5rem}
+  .history-item{font-size:.83rem;color:var(--text);margin-bottom:.3rem;display:flex;gap:.5rem;flex-wrap:wrap}
+  .history-date{color:var(--rose);font-weight:600}
+  .client-meta{font-size:.83rem;color:var(--muted);margin-top:.15rem}
+  #loader{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;font-size:2.5rem;gap:.5rem}
+  #loader p{font-size:1rem;color:var(--rose)}
+</style>
+</head>
+<body>
+<div id="loader">💅<p>Connessione al cloud…</p></div>
+<div id="app" style="display:none"></div>
+<script>
+// ── FIREBASE REST ─────────────────────────────────────────────────────────────
+const FB_PROJECT="moi-dom-9e132";
+const FB_API_KEY="AIzaSyAKA3Pai7x0CgPkd6AF_5OUa1DWEIv8IV8";
+const FB_URL=`https://firestore.googleapis.com/v1/projects/${FB_PROJECT}/databases/(default)/documents/moidom/data`;
+
+function toFS(obj){
+  function cv(v){
+    if(v===null||v===undefined)return{nullValue:null};
+    if(typeof v==="boolean")return{booleanValue:v};
+    if(typeof v==="number")return{doubleValue:v};
+    if(typeof v==="string")return{stringValue:v};
+    if(Array.isArray(v))return{arrayValue:{values:v.map(cv)}};
+    if(typeof v==="object"){const f={};Object.entries(v).forEach(([k,x])=>{f[k]=cv(x)});return{mapValue:{fields:f}}}
+    return{stringValue:String(v)};
+  }
+  const f={};Object.entries(obj).forEach(([k,v])=>{f[k]=cv(v)});return{fields:f};
+}
+function fromFS(fields){
+  function pv(v){
+    if(v.nullValue!==undefined)return null;
+    if(v.booleanValue!==undefined)return v.booleanValue;
+    if(v.doubleValue!==undefined)return v.doubleValue;
+    if(v.integerValue!==undefined)return+v.integerValue;
+    if(v.stringValue!==undefined)return v.stringValue;
+    if(v.arrayValue)return(v.arrayValue.values||[]).map(pv);
+    if(v.mapValue){const o={};Object.entries(v.mapValue.fields||{}).forEach(([k,x])=>{o[k]=pv(x)});return o}
+    return null;
+  }
+  const o={};Object.entries(fields||{}).forEach(([k,v])=>{o[k]=pv(v)});return o;
+}
+const LOCAL={
+  get(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch{return fb}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+async function fbSave(){
+  try{
+    await fetch(`${FB_URL}?key=${FB_API_KEY}`,{method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(toFS({appointments:state.appointments,clients:state.clients,services:state.services,updatedAt:new Date().toISOString()}))});
+  }catch{
+    LOCAL.set("ba_appts",state.appointments);
+    LOCAL.set("ba_clients",state.clients);
+    LOCAL.set("ba_services",state.services);
+  }
+}
+async function fbLoad(){
+  try{
+    const r=await fetch(`${FB_URL}?key=${FB_API_KEY}`);
+    if(r.ok){const j=await r.json();const d=fromFS(j.fields);return{appointments:d.appointments||[],clients:d.clients||[],services:d.services||DEFAULT_SERVICES};}
+    if(r.status===404)return{appointments:[],clients:[],services:DEFAULT_SERVICES};
+  }catch{}
+  return{appointments:LOCAL.get("ba_appts",[]),clients:LOCAL.get("ba_clients",[]),services:LOCAL.get("ba_services",DEFAULT_SERVICES)};
+}
+
+// ── DEFAULTS ──────────────────────────────────────────────────────────────────
+const DEFAULT_SERVICES=[
+  {id:"s1",name:"Ceretta ascelle",duration:20,price:12,description:""},
+  {id:"s2",name:"Ceretta gambe",duration:45,price:30,description:""},
+  {id:"s3",name:"Manicure",duration:60,price:25,description:""},
+  {id:"s4",name:"Pedicure",duration:75,price:35,description:""},
+  {id:"s5",name:"Semipermanente",duration:90,price:40,description:""},
+  {id:"s6",name:"Sopracciglia",duration:20,price:10,description:""},
+  {id:"s7",name:"Trattamento viso",duration:60,price:50,description:""},
+  {id:"s8",name:"Trucco",duration:60,price:60,description:""},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let state={
+  tab:"calendar",appointments:[],clients:[],services:DEFAULT_SERVICES,
+  baseDate:new Date(),selectedDay:toKey(new Date()),
+  modal:null,clientSearch:"",expandedClient:null,expandedAppt:null,statsYear:null
+};
+function save(){fbSave();}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const DAYS=["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+const MONTHS=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+function toKey(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),dd=String(d.getDate()).padStart(2,"0");return`${y}-${m}-${dd}`;}
+function uid(){return"_"+Math.random().toString(36).slice(2,9);}
+function timeToMin(t){const[h,m]=t.split(":").map(Number);return h*60+m;}
+function clientById(id){return state.clients.find(c=>c.id===id);}
+function serviceById(id){return state.services.find(s=>s.id===id);}
+const SVC_COLORS=["#c47a9e","#7a9ec4","#9ec47a","#c4a47a","#a47ac4","#c47a7a","#7ac4bc","#c4bc7a","#7a7ac4","#c49a7a"];
+function serviceColor(sid){const i=state.services.findIndex(s=>s.id===sid);return SVC_COLORS[i%SVC_COLORS.length]||"#c47a9e";}
+function apptPrice(a){return a.customPrice!=null?a.customPrice:(serviceById(a.serviceId)?.price||0);}
+
+function italianHolidays(year){
+  const fixed=[`${year}-01-01`,`${year}-01-06`,`${year}-04-25`,`${year}-05-01`,`${year}-06-02`,
+    `${year}-08-15`,`${year}-11-01`,`${year}-12-08`,`${year}-12-25`,`${year}-12-26`];
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
+  const g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+  const mm=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*mm+114)/31),dy=((h+l-7*mm+114)%31)+1;
+  const easter=new Date(year,mo-1,dy),easterMon=new Date(easter);easterMon.setDate(easter.getDate()+1);
+  fixed.push(toKey(easter),toKey(easterMon));return new Set(fixed);
+}
+function dayStatus(key){
+  const d=new Date(key+"T12:00:00"),dow=d.getDay();
+  if(italianHolidays(d.getFullYear()).has(key))return"holiday";
+  if(dow===0||dow===1)return"dayoff";
+  return null;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const app=document.getElementById("app");app.innerHTML="";
+  app.appendChild(renderHeader());
+  const content=el("div",{id:"content"});
+  if(state.tab==="calendar")content.appendChild(renderCalendar());
+  if(state.tab==="clients")content.appendChild(renderClients());
+  if(state.tab==="services")content.appendChild(renderServices());
+  if(state.tab==="stats")content.appendChild(renderStats());
+  app.appendChild(content);
+  if(state.modal)app.appendChild(renderModal());
+}
+function el(tag,props={},...children){
+  const e=document.createElement(tag);
+  Object.entries(props).forEach(([k,v])=>{
+    if(k==="class")e.className=v;
+    else if(k==="style"&&typeof v==="object")Object.assign(e.style,v);
+    else if(k.startsWith("on"))e.addEventListener(k.slice(2).toLowerCase(),v);
+    else e.setAttribute(k,v);
+  });
+  children.flat().forEach(c=>{if(c!=null)e.appendChild(typeof c==="string"?document.createTextNode(c):c)});
+  return e;
+}
+function txt(t){return document.createTextNode(t);}
+
+// ── HEADER ────────────────────────────────────────────────────────────────────
+function renderHeader(){
+  const today=toKey(new Date()),pfx=today.slice(0,7);
+  const todayCount=state.appointments.filter(a=>a.date===today).length;
+  const monthRev=state.appointments.filter(a=>a.date.startsWith(pfx)&&a.payment!=="da_pagare").reduce((s,a)=>s+apptPrice(a),0);
+  const dateStr=new Date().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const tabs=[{id:"calendar",label:"📅 Calendario"},{id:"clients",label:"👤 Clienti"},{id:"services",label:"✨ Servizi"},{id:"stats",label:"📊 Guadagni"}];
+  return el("div",{id:"header"},
+    el("div",{class:"header-top"},
+      el("div",{},el("div",{class:"header-title"},"💅 MOI DOM"),el("div",{class:"header-date"},dateStr)),
+      el("div",{class:"header-stats"},
+        el("div",{class:"stat-pill"},el("div",{class:"stat-val"},String(todayCount)),el("div",{class:"stat-label"},"oggi")),
+        el("div",{class:"stat-pill"},el("div",{class:"stat-val gold"},"€"+monthRev),el("div",{class:"stat-label"},"questo mese"))
+      )
+    ),
+    el("div",{class:"tabs"},...tabs.map(t=>el("button",{class:"tab-btn"+(state.tab===t.id?" active":""),onClick:()=>{state.tab=t.id;render();}},t.label)))
+  );
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────────
+function getMonthCells(year,month){
+  const first=new Date(year,month,1),last=new Date(year,month+1,0);
+  let dow=(first.getDay()+6)%7;const cells=[];
+  for(let i=dow-1;i>=0;i--){const d=new Date(year,month,0-i);cells.push({date:d,cur:false});}
+  for(let d=1;d<=last.getDate();d++)cells.push({date:new Date(year,month,d),cur:true});
+  while(cells.length%7!==0){const p=cells[cells.length-1].date,n=new Date(p);n.setDate(p.getDate()+1);cells.push({date:n,cur:false});}
+  return cells;
+}
+
+function renderCalendar(){
+  const today=toKey(new Date());
+  const apptsByDay={};
+  state.appointments.forEach(a=>{if(!apptsByDay[a.date])apptsByDay[a.date]=[];apptsByDay[a.date].push(a);});
+  const year=state.baseDate.getFullYear(),month=state.baseDate.getMonth();
+  const cells=getMonthCells(year,month);
+  const dayAppts=(apptsByDay[state.selectedDay]||[]).slice().sort((a,b)=>timeToMin(a.time)-timeToMin(b.time));
+  const selLabel=new Date(state.selectedDay+"T12:00:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+
+  return el("div",{},
+    el("div",{class:"month-nav"},
+      el("button",{onClick:()=>{const d=new Date(state.baseDate);d.setMonth(d.getMonth()-1);state.baseDate=d;render();}},"‹"),
+      el("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:".2rem"}},
+        el("h3",{},MONTHS[month]+" "+year),
+        el("button",{style:{background:"none",border:"1px solid #e0c8d8",borderRadius:"2rem",padding:".15rem .7rem",fontSize:".7rem",color:"#c47a9e",cursor:"pointer",fontWeight:600},
+          onClick:()=>{state.baseDate=new Date();state.selectedDay=toKey(new Date());render();}},"● Oggi")
+      ),
+      el("button",{onClick:()=>{const d=new Date(state.baseDate);d.setMonth(d.getMonth()+1);state.baseDate=d;render();}},"›")
+    ),
+    el("div",{class:"cal-dow-row"},...DAYS.map(d=>el("div",{class:"cal-dow"},d))),
+    el("div",{class:"cal-grid"},...cells.map(({date,cur})=>{
+      const key=toKey(date),dayA=apptsByDay[key]||[],cnt=dayA.length;
+      const hasUnpaid=dayA.some(a=>a.payment==="da_pagare"||!a.payment);
+      const status=cur?dayStatus(key):null;
+      let cls="day-cell";
+      if(!cur)cls+=" other-month";
+      else if(key===state.selectedDay)cls+=" selected";
+      else if(key===today)cls+=" today";
+      if(status==="holiday")cls+=" holiday";
+      else if(status==="dayoff")cls+=" dayoff";
+      return el("button",{class:cls,onClick:()=>{state.selectedDay=key;state.baseDate=new Date(date);render();}},
+        el("div",{class:"dc-num"},String(date.getDate())),
+        cnt>0?el("div",{style:{display:"flex",gap:"2px",justifyContent:"center",marginTop:"3px"}},
+          el("div",{class:"day-dot"}),
+          hasUnpaid?el("div",{class:"day-dot",style:{background:key===state.selectedDay?"#fff":"#e0a030"}}):txt("")
+        ):txt("")
+      );
+    })),
+    el("div",{style:{display:"flex",gap:".7rem",marginBottom:".9rem",fontSize:".7rem",color:"#9b6b8a",flexWrap:"wrap"}},
+      el("span",{style:{display:"flex",alignItems:"center",gap:".3rem"}},el("span",{style:{width:8,height:8,borderRadius:2,background:"#c47a9e",display:"inline-block"}}),"Appuntamento"),
+      el("span",{style:{display:"flex",alignItems:"center",gap:".3rem"}},el("span",{style:{width:8,height:8,borderRadius:2,background:"#e0a030",display:"inline-block"}}),"Da pagare"),
+      el("span",{style:{display:"flex",alignItems:"center",gap:".3rem"}},el("span",{style:{width:8,height:8,borderRadius:2,background:"#f5f0ff",border:"1px solid #9b6b8a",display:"inline-block"}}),"Dom/Lun"),
+      el("span",{style:{display:"flex",alignItems:"center",gap:".3rem"}},el("span",{style:{width:8,height:8,borderRadius:2,background:"#fff0f0",border:"1px solid #c0504a",display:"inline-block"}}),"Festivo")
+    ),
+    el("div",{class:"day-header"},
+      el("h4",{},selLabel),
+      el("button",{class:"btn btn-primary btn-sm",onClick:()=>{
+        state.modal={type:"appt",data:{id:null,clientId:"",serviceId:"",date:state.selectedDay,time:"09:00",notes:"",payment:"carta",customPrice:null}};render();
+      }},"+ Appuntamento")
+    ),
+    (()=>{
+      const md=state.selectedDay.slice(5);
+      const bdc=state.clients.filter(c=>c.birthday&&c.birthday.slice(5)===md);
+      if(!bdc.length)return txt("");
+      return el("div",{style:{background:"#fff8e1",border:"1.5px solid #ffe082",borderRadius:"1.1rem",padding:".75rem 1rem",marginBottom:".65rem",fontSize:".88rem",color:"#856404"}},
+        el("div",{style:{fontWeight:700,marginBottom:".3rem"}},"🎂 Compleanno oggi!"),
+        ...bdc.map(c=>el("div",{},c.name))
+      );
+    })(),
+    dayAppts.length===0
+      ?el("div",{class:"empty"},el("div",{class:"empty-icon"},"🌸"),"Nessun appuntamento per questo giorno")
+      :el("div",{},...dayAppts.map(a=>{
+        const c=clientById(a.clientId),s=serviceById(a.serviceId);
+        const price=a.customPrice!=null?a.customPrice:(s?.price||0);
+        const svcColor=serviceColor(a.serviceId);
+        const payColor=a.payment==="carta"?"#5b8dd9":a.payment==="contanti"?"#6abf69":"#e0a030";
+        const payIcon=a.payment==="carta"?"💳":a.payment==="contanti"?"💵":"⏳";
+        const payLabel=a.payment==="carta"?"Carta":a.payment==="contanti"?"Contanti":"Da pagare";
+        const isExp=state.expandedAppt===a.id;
+        const card=el("div",{class:"card",style:{marginBottom:".65rem",borderLeft:"4px solid "+svcColor}});
+        card.appendChild(el("div",{class:"card-row"},
+          el("div",{style:{flex:1,minWidth:0}},
+            el("div",{class:"appt-time"},a.time),
+            el("div",{class:"appt-client"},c?.name||"—"),
+            el("div",{class:"appt-service"},(s?.name||"—")+" · "+(s?.duration||"?")+"min · ",el("strong",{},"€"+price)," ",
+              el("span",{style:{fontSize:".75rem",color:payColor,fontWeight:600}},payIcon+" "+payLabel)),
+            a.notes?el("div",{class:"appt-notes"},a.notes):txt("")
+          ),
+          el("div",{style:{display:"flex",gap:".35rem",flexShrink:0}},
+            el("button",{class:"btn btn-secondary btn-sm icon-btn",onClick:()=>{state.expandedAppt=isExp?null:a.id;render();}},isExp?"▲":"💰"),
+            el("button",{class:"btn btn-secondary btn-sm icon-btn",onClick:()=>{
+              const cn=clientById(a.clientId),sv=serviceById(a.serviceId);
+              const df=new Date(a.date+"T12:00:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+              const msg=encodeURIComponent("Ciao "+(cn?.name?.split(" ")[0]||"")+"! Ti ricordo il tuo appuntamento per "+(sv?.name||"")+" "+df+" alle "+a.time+". A presto! 💅");
+              window.open("sms:"+((cn?.phone||"").replace(/\s/g,""))+"?&body="+msg);
+            }},"💬"),
+            el("button",{class:"btn btn-secondary btn-sm icon-btn",onClick:()=>{state.modal={type:"appt",data:{...a}};render();}},"✏️"),
+            el("button",{class:"btn btn-danger btn-sm icon-btn",onClick:()=>{
+              if(confirm("Eliminare questo appuntamento?")){state.appointments=state.appointments.filter(x=>x.id!==a.id);save();render();}
+            }},"🗑")
+          )
+        ));
+        if(isExp){
+          const panel=el("div",{style:{marginTop:".75rem",borderTop:"1px solid #f0dce8",paddingTop:".75rem",display:"flex",flexDirection:"column",gap:".6rem"}});
+          const pmRow=el("div",{style:{display:"flex",gap:".4rem"}});
+          [["contanti","💵 Contanti","#6abf69"],["carta","💳 Carta","#5b8dd9"],["da_pagare","⏳ Da pagare","#e0a030"]].forEach(([v,l,col])=>{
+            const active=(a.payment||"carta")===v;
+            pmRow.appendChild(el("button",{style:{flex:1,border:"2px solid "+(active?col:"#e0c8d8"),borderRadius:"2rem",padding:".38rem .3rem",fontSize:".78rem",fontWeight:700,cursor:"pointer",background:active?col+"22":"transparent",color:active?col:"#9b6b8a"},
+              onClick:()=>{state.appointments=state.appointments.map(x=>x.id===a.id?{...x,payment:v}:x);save();render();}},l));
+          });
+          panel.appendChild(pmRow);
+          const priceRow=el("div",{style:{display:"flex",gap:".5rem",alignItems:"center"}});
+          const priceIn=el("input",{type:"number",min:"0",step:"0.5",style:{flex:1,padding:".5rem .8rem",border:"1.5px solid #e0c8d8",borderRadius:".75rem",background:"#fff9f5",fontFamily:"'DM Sans',sans-serif",fontSize:".9rem",color:"#3d1a2e",outline:"none"}});
+          priceIn.value=price;
+          priceRow.appendChild(el("label",{style:{fontSize:".82rem",color:"#7a4a6a",fontWeight:600,whiteSpace:"nowrap"}},"Importo €"));
+          priceRow.appendChild(priceIn);
+          priceRow.appendChild(el("button",{class:"btn btn-primary btn-sm",onClick:()=>{
+            state.appointments=state.appointments.map(x=>x.id===a.id?{...x,customPrice:+priceIn.value}:x);
+            state.expandedAppt=null;save();render();
+          }},"✓ Salva"));
+          panel.appendChild(priceRow);
+          card.appendChild(panel);
+        }
+        return card;
+      }))
+  );
+}
+
+// ── CLIENTS ───────────────────────────────────────────────────────────────────
+function renderClients(){
+  const q=state.clientSearch.toLowerCase();
+  const filtered=state.clients.filter(c=>c.name.toLowerCase().includes(q)).slice().sort((a,b)=>a.name.localeCompare(b.name,"it"));
+  return el("div",{},
+    el("div",{class:"search-bar"},
+      el("input",{type:"search",placeholder:"🔍 Cerca cliente…",value:state.clientSearch,onInput:e=>{state.clientSearch=e.target.value;render();}}),
+      el("button",{class:"btn btn-primary btn-sm",onClick:()=>{state.modal={type:"client",data:{id:null,name:"",phone:"",email:"",birthday:"",notes:""}};render();}},"+ Nuovo")
+    ),
+    filtered.length===0?el("div",{class:"empty"},el("div",{class:"empty-icon"},"💅"),"Nessun cliente trovato")
+    :el("div",{},...filtered.map(c=>{
+      const appts=state.appointments.filter(a=>a.clientId===c.id);
+      const spent=appts.reduce((s,a)=>s+apptPrice(a),0);
+      const isExp=state.expandedClient===c.id;
+      const todayMD=toKey(new Date()).slice(5);
+      const isBirthday=c.birthday&&c.birthday.slice(5)===todayMD;
+      const birthdaySoon=c.birthday&&(()=>{const n=new Date(),bd=new Date(n.getFullYear()+"-"+c.birthday.slice(5)+"T12:00:00");if(bd<n)bd.setFullYear(n.getFullYear()+1);return(bd-n)<7*24*3600*1000;})();
+      const maxA=Math.max(...state.clients.map(x=>state.appointments.filter(a=>a.clientId===x.id).length),0);
+      const isTop=appts.length>0&&appts.length===maxA;
+      return el("div",{class:"card",style:{cursor:"pointer"},onClick:()=>{state.expandedClient=isExp?null:c.id;render();}},
+        el("div",{class:"card-row"},
+          el("div",{style:{flex:1}},
+            el("div",{style:{fontWeight:700,marginBottom:".2rem",display:"flex",alignItems:"center",gap:".4rem",flexWrap:"wrap"}},
+              c.name,
+              isBirthday?el("span",{style:{fontSize:".78rem",background:"#fff3cd",color:"#856404",borderRadius:"2rem",padding:".1rem .5rem"}},"🎂 Oggi!"):txt(""),
+              birthdaySoon&&!isBirthday?el("span",{style:{fontSize:".78rem",background:"#fff3cd",color:"#856404",borderRadius:"2rem",padding:".1rem .5rem"}},"🎂 Presto"):txt(""),
+              isTop?el("span",{style:{fontSize:".78rem",background:"#fff8e1",color:"#c47a00",borderRadius:"2rem",padding:".1rem .5rem"}},"⭐ Top"):txt("")
+            ),
+            el("div",{class:"client-meta"},
+              c.phone?"📞 "+c.phone+" ":"",c.email?"✉️ "+c.email:"",
+              c.birthday?" 🎂 "+new Date(c.birthday+"T12:00:00").toLocaleDateString("it-IT",{day:"numeric",month:"long"}):""
+            )
+          ),
+          el("div",{style:{display:"flex",gap:".35rem",alignItems:"center",flexShrink:0}},
+            el("span",{class:"badge badge-rose"},appts.length+" apt · €"+spent),
+            el("button",{class:"btn btn-secondary btn-sm icon-btn",onClick:e=>{e.stopPropagation();state.modal={type:"client",data:{...c}};render();}},"✏️"),
+            el("button",{class:"btn btn-danger btn-sm icon-btn",onClick:e=>{e.stopPropagation();if(confirm("Eliminare "+c.name+"?")){state.clients=state.clients.filter(x=>x.id!==c.id);if(state.expandedClient===c.id)state.expandedClient=null;save();render();}}},"🗑")
+          )
+        ),
+        isExp?el("div",{style:{marginTop:".8rem",borderTop:"1px solid #f0dce8",paddingTop:".8rem"}},
+          c.notes?el("div",{style:{background:"#fff3f8",borderRadius:".75rem",padding:".5rem .8rem",fontSize:".83rem",color:"#7a4a6a",marginBottom:".7rem",borderLeft:"3px solid #c47a9e"}},"📝 "+c.notes):txt(""),
+          el("div",{style:{fontSize:".8rem",fontWeight:700,color:"#7a4a6a",marginBottom:".4rem"}},"Storico appuntamenti"),
+          appts.length===0?el("div",{style:{fontSize:".83rem",color:"#b08898",fontStyle:"italic"}},"Nessun appuntamento ancora")
+          :el("div",{},...appts.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6).map(a=>{
+            const s=serviceById(a.serviceId);
+            return el("div",{class:"history-item"},
+              el("span",{class:"history-date"},a.date),el("span",{},a.time),el("span",{},s?.name||"—"),
+              el("span",{style:{color:"var(--muted)"}},"€"+apptPrice(a)),
+              a.payment?el("span",{},a.payment==="carta"?"💳":a.payment==="contanti"?"💵":"⏳"):txt("")
+            );
+          }))
+        ):txt("")
+      );
+    }))
+  );
+}
+
+// ── SERVICES ──────────────────────────────────────────────────────────────────
+function renderServices(){
+  return el("div",{},
+    el("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:"1rem"}},
+      el("button",{class:"btn btn-primary btn-sm",onClick:()=>{state.modal={type:"service",data:{id:null,name:"",duration:60,price:0,description:""}};render();}},"+ Nuovo Servizio")
+    ),
+    el("div",{class:"service-grid"},...state.services.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).map(s=>
+      el("div",{class:"service-card"},
+        el("div",{class:"service-name"},s.name),
+        s.description?el("div",{class:"service-desc"},s.description):txt(""),
+        el("div",{class:"badge-row"},el("span",{class:"badge badge-rose"},"⏱ "+s.duration+"min"),el("span",{class:"badge badge-gold"},"€ "+s.price)),
+        el("div",{style:{display:"flex",gap:".35rem"}},
+          el("button",{class:"btn btn-secondary btn-sm",onClick:()=>{state.modal={type:"service",data:{...s}};render();}},"✏️"),
+          el("button",{class:"btn btn-danger btn-sm",onClick:()=>{if(confirm("Eliminare "+s.name+"?")){state.services=state.services.filter(x=>x.id!==s.id);save();render();}}},"🗑")
+        )
+      )
+    ))
+  );
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function renderStats(){
+  const now=new Date(),curYear=now.getFullYear();
+  const allYears=[...new Set(state.appointments.map(a=>a.date.slice(0,4)))].sort().reverse();
+  if(!allYears.includes(String(curYear)))allYears.unshift(String(curYear));
+  if(!state.statsYear)state.statsYear=String(curYear);
+  const year=+state.statsYear;
+
+  const monthlyData=Array.from({length:12},(_,i)=>{
+    const pfx=year+"-"+String(i+1).padStart(2,"0");
+    const rev=state.appointments.filter(a=>a.date.startsWith(pfx)&&a.payment!=="da_pagare").reduce((s,a)=>s+apptPrice(a),0);
+    return{month:MONTHS[i].slice(0,3),rev};
+  });
+  const maxRev=Math.max(...monthlyData.map(m=>m.rev),1);
+  const totalYear=state.appointments.filter(a=>a.date.startsWith(String(year))&&a.payment!=="da_pagare").reduce((s,a)=>s+apptPrice(a),0);
+  const svcCount={};
+  state.appointments.filter(a=>a.date.startsWith(String(year))).forEach(a=>{
+    const s=serviceById(a.serviceId);if(!s)return;
+    if(!svcCount[s.id])svcCount[s.id]={name:s.name,count:0,rev:0};
+    svcCount[s.id].count++;svcCount[s.id].rev+=apptPrice(a);
+  });
+  const topSvcs=Object.values(svcCount).sort((a,b)=>b.count-a.count).slice(0,5);
+  const curPfx=toKey(now).slice(0,7);
+  const curAppts=state.appointments.filter(a=>a.date.startsWith(curPfx));
+  const curRev=curAppts.filter(a=>a.payment!=="da_pagare").reduce((s,a)=>s+apptPrice(a),0);
+  const curCash=curAppts.filter(a=>a.payment==="contanti").reduce((s,a)=>s+apptPrice(a),0);
+  const curCard=curAppts.filter(a=>a.payment==="carta").reduce((s,a)=>s+apptPrice(a),0);
+  const curUnpaid=curAppts.filter(a=>a.payment==="da_pagare"||!a.payment).reduce((s,a)=>s+apptPrice(a),0);
+  const dowRev=Array(7).fill(0),dowCount=Array(7).fill(0);
+  state.appointments.filter(a=>a.date.startsWith(String(year))&&a.payment!=="da_pagare").forEach(a=>{
+    const dow=(new Date(a.date+"T12:00:00").getDay()+6)%7;dowRev[dow]+=apptPrice(a);dowCount[dow]++;
+  });
+  const bestDow=dowRev.indexOf(Math.max(...dowRev));
+
+  const wrap=el("div",{});
+  const yr=el("div",{style:{display:"flex",gap:".4rem",marginBottom:"1rem",flexWrap:"wrap"}});
+  allYears.forEach(y=>yr.appendChild(el("button",{style:{border:"none",borderRadius:"2rem",padding:".35rem .9rem",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:".85rem",background:String(y)===state.statsYear?"#c47a9e":"#f3e8f0",color:String(y)===state.statsYear?"#fff":"#7a4a6a"},onClick:()=>{state.statsYear=String(y);render();}},String(y))));
+  wrap.appendChild(yr);
+  const summary=el("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:".65rem",marginBottom:"1.25rem"}});
+  [{label:"Incassato questo mese",val:"€"+curRev,color:"#c47a9e"},{label:"Appuntamenti questo mese",val:String(curAppts.length),color:"#9b6b8a"},
+   {label:"Totale incassato "+year,val:"€"+totalYear,color:"#d4a853"},{label:"Da riscuotere",val:"€"+curUnpaid,color:"#e0a030"}]
+  .forEach(p=>summary.appendChild(el("div",{style:{background:"#fff9f5",borderRadius:"1.1rem",padding:"1rem",border:"1.5px solid #f0dce8",textAlign:"center"}},
+    el("div",{style:{fontSize:"1.5rem",fontWeight:700,color:p.color,fontFamily:"'Playfair Display',serif"}},p.val),
+    el("div",{style:{fontSize:".75rem",color:"#9b6b8a",marginTop:".2rem"}},p.label)
+  )));
+  wrap.appendChild(summary);
+  wrap.appendChild(el("div",{style:{background:"#fff9f5",borderRadius:"1.1rem",padding:"1rem",border:"1.5px solid #f0dce8",marginBottom:"1rem",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:".5rem",textAlign:"center"}},
+    el("div",{},el("div",{style:{fontSize:"1.2rem",fontWeight:700,color:"#6abf69"}},"€"+curCash),el("div",{style:{fontSize:".72rem",color:"#9b6b8a"}},"💵 Contanti")),
+    el("div",{},el("div",{style:{fontSize:"1.2rem",fontWeight:700,color:"#5b8dd9"}},"€"+curCard),el("div",{style:{fontSize:".72rem",color:"#9b6b8a"}},"💳 Carta")),
+    el("div",{},el("div",{style:{fontSize:"1.2rem",fontWeight:700,color:"#e0a030"}},"€"+curUnpaid),el("div",{style:{fontSize:".72rem",color:"#9b6b8a"}},"⏳ Da pagare"))
+  ));
+  wrap.appendChild(el("div",{style:{background:"#fff9f5",borderRadius:"1.1rem",padding:"1rem",border:"1.5px solid #f0dce8",marginBottom:"1rem"}},
+    el("div",{style:{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#3d1a2e",marginBottom:"1rem",fontWeight:700}},"Guadagni mensili "+year),
+    el("div",{style:{display:"flex",alignItems:"flex-end",gap:"3px",height:"100px"}},...monthlyData.map(m=>{
+      const h=maxRev>0?Math.round((m.rev/maxRev)*90)+2:2;
+      const isCur=MONTHS[now.getMonth()].slice(0,3)===m.month;
+      return el("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:"3px"}},
+        el("div",{style:{width:"100%",height:h+"px",borderRadius:"4px 4px 0 0",background:isCur?"linear-gradient(180deg,#c47a9e,#9b4a7e)":"#f0dce8"}}),
+        el("div",{style:{fontSize:".55rem",color:"#9b6b8a",textAlign:"center"}},m.month)
+      );
+    }))
+  ));
+  if(dowCount.some(c=>c>0)){
+    const dn=["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"],mx=Math.max(...dowRev,1);
+    const bb=el("div",{style:{background:"#fff9f5",borderRadius:"1.1rem",padding:"1rem",border:"1.5px solid #f0dce8",marginBottom:"1rem"}});
+    bb.appendChild(el("div",{style:{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#3d1a2e",marginBottom:".75rem",fontWeight:700}},"📅 Giornata più redditizia "+year));
+    bb.appendChild(el("div",{style:{background:"linear-gradient(135deg,#f3e8f0,#fff9f5)",border:"1.5px solid #e0c8d8",borderRadius:".75rem",padding:".7rem 1rem",marginBottom:".75rem",textAlign:"center"}},
+      el("div",{style:{fontSize:"1.3rem",fontWeight:700,color:"#c47a9e",fontFamily:"'Playfair Display',serif"}},dn[bestDow]),
+      el("div",{style:{fontSize:".8rem",color:"#9b6b8a",marginTop:".2rem"}},"€"+dowRev[bestDow]+" · "+dowCount[bestDow]+" appuntamenti")
+    ));
+    dn.forEach((name,i)=>{
+      if(!dowCount[i])return;
+      const pct=Math.round((dowRev[i]/mx)*100);
+      bb.appendChild(el("div",{style:{marginBottom:".45rem"}},
+        el("div",{style:{display:"flex",justifyContent:"space-between",fontSize:".8rem",marginBottom:".2rem"}},
+          el("span",{style:{fontWeight:i===bestDow?700:400,color:i===bestDow?"#c47a9e":"#3d1a2e"}},name),
+          el("span",{style:{color:"#9b6b8a"}},"€"+dowRev[i])
+        ),
+        el("div",{style:{background:"#f0dce8",borderRadius:"2rem",height:6,overflow:"hidden"}},
+          el("div",{style:{width:pct+"%",height:"100%",background:i===bestDow?"linear-gradient(90deg,#c47a9e,#e8a0c0)":"#e0c8d8",borderRadius:"2rem"}})
+        )
+      ));
+    });
+    wrap.appendChild(bb);
+  }
+  if(topSvcs.length>0){
+    const sb=el("div",{style:{background:"#fff9f5",borderRadius:"1.1rem",padding:"1rem",border:"1.5px solid #f0dce8",marginBottom:"1rem"}});
+    sb.appendChild(el("div",{style:{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#3d1a2e",marginBottom:".75rem",fontWeight:700}},"Servizi più richiesti"));
+    const mc=topSvcs[0].count;
+    topSvcs.forEach((s,i)=>{
+      const pct=Math.round((s.count/mc)*100);
+      sb.appendChild(el("div",{style:{marginBottom:".65rem"}},
+        el("div",{style:{display:"flex",justifyContent:"space-between",fontSize:".85rem",marginBottom:".25rem"}},
+          el("span",{style:{fontWeight:600,color:"#3d1a2e"}},(i+1)+". "+s.name),
+          el("span",{style:{color:"#9b6b8a"}},s.count+" apt · €"+s.rev)
+        ),
+        el("div",{style:{background:"#f0dce8",borderRadius:"2rem",height:7,overflow:"hidden"}},
+          el("div",{style:{width:pct+"%",height:"100%",background:"linear-gradient(90deg,#c47a9e,#e8a0c0)",borderRadius:"2rem"}})
+        )
+      ));
+    });
+    wrap.appendChild(sb);
+  }else{
+    wrap.appendChild(el("div",{class:"empty"},el("div",{class:"empty-icon"},"📊"),"Aggiungi appuntamenti per vedere le statistiche"));
+  }
+  const bk=el("div",{style:{background:"#fff9f5",borderRadius:"1.1rem",padding:"1rem 1.1rem",border:"1.5px solid #f0dce8",marginTop:"1rem"}});
+  bk.appendChild(el("div",{style:{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#3d1a2e",fontWeight:700,marginBottom:".3rem"}},"💾 Backup dati"));
+  bk.appendChild(el("div",{style:{fontSize:".8rem",color:"#9b6b8a",marginBottom:".9rem"}},"I dati sono in cloud ☁️. Usa il backup come copia extra."));
+  bk.appendChild(el("button",{class:"btn btn-primary btn-md",style:{width:"100%",marginBottom:".6rem"},onClick:()=>{
+    const json=JSON.stringify({version:1,exportedAt:new Date().toISOString(),clients:state.clients,appointments:state.appointments,services:state.services});
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(json).then(()=>alert("✅ Backup copiato!\n\nIncolla nelle Note del tuo iPhone.")).catch(()=>showBkText(json));
+    }else showBkText(json);
+  }},"📋 Copia backup negli appunti"));
+  const pasteArea=el("textarea",{rows:3,placeholder:"Incolla qui il testo del backup e premi Ripristina…",style:{width:"100%",padding:".6rem",border:"1.5px solid #e0c8d8",borderRadius:".75rem",background:"#fff9f5",fontSize:".75rem",color:"#3d1a2e",marginBottom:".6rem",fontFamily:"monospace",resize:"none"}});
+  bk.appendChild(pasteArea);
+  bk.appendChild(el("button",{class:"btn btn-secondary btn-md",style:{width:"100%"},onClick:()=>{
+    const text=pasteArea.value.trim();if(!text){alert("Incolla prima il testo.");return;}
+    try{
+      const d=JSON.parse(text);
+      if(!d.clients||!d.appointments||!d.services){alert("❌ Testo non valido.");return;}
+      if(!confirm("⚠️ I dati attuali verranno sostituiti. Continuare?"))return;
+      state.clients=d.clients||[];state.appointments=d.appointments||[];state.services=d.services||DEFAULT_SERVICES;
+      save();render();alert("✅ Backup ripristinato!");
+    }catch{alert("❌ Testo non valido.");}
+  }},"⬆️ Ripristina da backup"));
+  function showBkText(json){
+    const ta=el("textarea",{rows:4,style:{width:"100%",padding:".6rem",border:"1.5px solid #e0c8d8",borderRadius:".75rem",background:"#fff9f5",fontSize:".7rem",color:"#3d1a2e",marginBottom:".6rem",fontFamily:"monospace",resize:"none"}});
+    ta.value=json;ta.addEventListener("click",()=>ta.select());
+    bk.insertBefore(el("div",{style:{fontSize:".8rem",color:"#7a4a6a",marginBottom:".4rem",fontWeight:600}},"Seleziona tutto e copia:"),pasteArea);
+    bk.insertBefore(ta,pasteArea);
+  }
+  wrap.appendChild(bk);
+  return wrap;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function renderModal(){
+  const{type,data}=state.modal;
+  let title,body;
+  if(type==="appt"){title=data.id?"Modifica Appuntamento":"Nuovo Appuntamento";body=renderApptForm(data);}
+  if(type==="client"){title=data.id?"Modifica Cliente":"Nuovo Cliente";body=renderClientForm(data);}
+  if(type==="service"){title=data.id?"Modifica Servizio":"Nuovo Servizio";body=renderServiceForm(data);}
+  return el("div",{class:"modal-overlay",onClick:e=>{if(e.target===e.currentTarget){state.modal=null;render();}}},
+    el("div",{class:"modal-box"},
+      el("div",{class:"modal-header"},el("div",{class:"modal-title"},title),el("button",{class:"modal-close",onClick:()=>{state.modal=null;render();}},"✕")),
+      body
+    )
+  );
+}
+
+// ── APPOINTMENT FORM ──────────────────────────────────────────────────────────
+function renderApptForm(d){
+  const wrap=el("div",{});
+  const clientSel=el("select",{});
+  clientSel.appendChild(el("option",{value:""},"— Seleziona cliente —"));
+  state.clients.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).forEach(c=>{const o=el("option",{value:c.id},c.name);if(c.id===d.clientId)o.selected=true;clientSel.appendChild(o);});
+  wrap.appendChild(el("div",{class:"field"},el("label",{},"Cliente"),clientSel));
+  const svcSel=el("select",{});
+  svcSel.appendChild(el("option",{value:""},"— Seleziona servizio —"));
+  state.services.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).forEach(s=>{const o=el("option",{value:s.id},s.name+" ("+s.duration+"min — €"+s.price+")");if(s.id===d.serviceId)o.selected=true;svcSel.appendChild(o);});
+  const infoBox=el("div",{});
+  const priceInput=el("input",{type:"number",min:"0",step:"0.5"});
+  priceInput.value=d.customPrice!=null?d.customPrice:(d.serviceId?(serviceById(d.serviceId)?.price||""):"");
+  function updateInfo(){infoBox.innerHTML="";const s=state.services.find(x=>x.id===svcSel.value);if(s){infoBox.appendChild(el("div",{class:"info-box"},"⏱ "+s.duration+" min  |  Prezzo base: €"+s.price));priceInput.value=s.price;}}
+  svcSel.addEventListener("change",updateInfo);
+  wrap.appendChild(el("div",{class:"field"},el("label",{},"Servizio"),svcSel));
+  wrap.appendChild(infoBox);updateInfo();
+  const paymentSel=el("select",{});
+  [["carta","💳 Carta"],["contanti","💵 Contanti"],["da_pagare","⏳ Da pagare"]].forEach(([v,l])=>{
+    const o=el("option",{value:v},l);if(v===(d.payment||"carta"))o.selected=true;paymentSel.appendChild(o);
+  });
+  const pg=el("div",{class:"grid2"});
+  pg.appendChild(el("div",{class:"field"},el("label",{},"Prezzo (€)"),priceInput));
+  pg.appendChild(el("div",{class:"field"},el("label",{},"Pagamento"),paymentSel));
+  wrap.appendChild(pg);
+  const dateInput=el("input",{type:"date",value:d.date||""});
+  const timeInput=el("input",{type:"time",value:d.time||"09:00"});
+  const g=el("div",{class:"grid2"});
+  g.appendChild(el("div",{class:"field"},el("label",{},"Data"),dateInput));
+  g.appendChild(el("div",{class:"field"},el("label",{},"Orario"),timeInput));
+  wrap.appendChild(g);
+  const notesInput=el("textarea",{rows:2,placeholder:"Opzionale…"});notesInput.value=d.notes||"";
+  wrap.appendChild(el("div",{class:"field"},el("label",{},"Note"),notesInput));
+  wrap.appendChild(el("div",{class:"btn-row"},
+    el("button",{class:"btn btn-secondary btn-md",onClick:()=>{state.modal=null;render();}},"Annulla"),
+    el("button",{class:"btn btn-primary btn-md",onClick:()=>{
+      const clientId=clientSel.value,serviceId=svcSel.value,date=dateInput.value,time=timeInput.value;
+      const notes=notesInput.value,customPrice=priceInput.value!==""?+priceInput.value:null,payment=paymentSel.value||"carta";
+      if(!clientId||!serviceId||!date||!time){alert("Compila tutti i campi obbligatori.");return;}
+      if(!d.id){const dt=new Date(date+"T"+time);if(dt<new Date()){if(!confirm("⚠️ Data nel passato!\nVuoi aggiungerlo comunque?"))return;}}
+      if(!d.id){const st=dayStatus(date);if(st==="holiday"){if(!confirm("🎉 Giorno festivo! Sei sicura?"))return;}else if(st==="dayoff"){const dw=new Date(date+"T12:00:00").getDay();if(!confirm("😴 "+(dw===0?"Domenica":"Lunedì")+" non è lavorativo. Sei sicura?"))return;}}
+      const ns=serviceById(serviceId),nst=timeToMin(time),ned=nst+(ns?.duration||0);
+      const conf=state.appointments.find(a=>{if(a.date!==date)return false;if(d.id&&a.id===d.id)return false;const as2=serviceById(a.serviceId),ast=timeToMin(a.time),aed=ast+(as2?.duration||0);return nst<aed&&ned>ast;});
+      if(conf){const cc=clientById(conf.clientId);alert("⚠️ Sovrapposizione!\n\nC'è già un appuntamento per "+(cc?.name||"una cliente")+" alle "+conf.time+".");return;}
+      const saved={id:d.id||uid(),clientId,serviceId,date,time,notes,customPrice,payment};
+      if(d.id)state.appointments=state.appointments.map(a=>a.id===d.id?saved:a);
+      else state.appointments.push(saved);
+      save();state.modal=null;render();
+    }},"Salva")
+  ));
+  return wrap;
+}
+
+// ── CLIENT FORM ───────────────────────────────────────────────────────────────
+function renderClientForm(d){
+  const form={...d};const wrap=el("div",{});
+  wrap.appendChild(fld("Nome e Cognome *","input",{type:"text",value:form.name||"",placeholder:"Es. Maria Rossi",onInput:e=>form.name=e.target.value}));
+  wrap.appendChild(fld("Telefono","input",{type:"tel",value:form.phone||"",placeholder:"+39 333 123 4567",onInput:e=>form.phone=e.target.value}));
+  wrap.appendChild(fld("Email","input",{type:"email",value:form.email||"",placeholder:"email@esempio.it",onInput:e=>form.email=e.target.value}));
+  const bdIn=el("input",{type:"date",value:form.birthday||""});
+  bdIn.addEventListener("input",e=>form.birthday=e.target.value);
+  bdIn.addEventListener("change",e=>form.birthday=e.target.value);
+  wrap.appendChild(el("div",{class:"field"},el("label",{},"Data di nascita"),bdIn));
+  wrap.appendChild(fld("Note","textarea",{value:form.notes||"",rows:2,onInput:e=>form.notes=e.target.value}));
+  wrap.appendChild(el("div",{class:"btn-row"},
+    el("button",{class:"btn btn-secondary btn-md",onClick:()=>{state.modal=null;render();}},"Annulla"),
+    el("button",{class:"btn btn-primary btn-md",onClick:()=>{
+      if(!form.name.trim())return;
+      if(form.id)state.clients=state.clients.map(c=>c.id===form.id?{...form}:c);
+      else state.clients.push({...form,id:uid(),createdAt:toKey(new Date())});
+      save();state.modal=null;render();
+    }},"Salva")
+  ));
+  return wrap;
+}
+
+// ── SERVICE FORM ──────────────────────────────────────────────────────────────
+function renderServiceForm(d){
+  const form={...d};const wrap=el("div",{});
+  wrap.appendChild(fld("Nome servizio *","input",{type:"text",value:form.name||"",placeholder:"Es. Manicure",onInput:e=>form.name=e.target.value}));
+  const g=el("div",{class:"grid2"});
+  g.appendChild(fld("Durata (min)","input",{type:"number",value:String(form.duration||60),min:"5",onInput:e=>form.duration=+e.target.value}));
+  g.appendChild(fld("Prezzo (€)","input",{type:"number",value:String(form.price||0),min:"0",step:"0.5",onInput:e=>form.price=+e.target.value}));
+  wrap.appendChild(g);
+  wrap.appendChild(fld("Descrizione","input",{type:"text",value:form.description||"",placeholder:"Opzionale…",onInput:e=>form.description=e.target.value}));
+  wrap.appendChild(el("div",{class:"btn-row"},
+    el("button",{class:"btn btn-secondary btn-md",onClick:()=>{state.modal=null;render();}},"Annulla"),
+    el("button",{class:"btn btn-primary btn-md",onClick:()=>{
+      if(!form.name.trim())return;
+      if(form.id)state.services=state.services.map(s=>s.id===form.id?{...form}:s);
+      else state.services.push({...form,id:uid()});
+      save();state.modal=null;render();
+    }},"Salva")
+  ));
+  return wrap;
+}
+
+function fld(label,tag,attrs={},children=[]){
+  const d=el("div",{class:"field"});d.appendChild(el("label",{},label));
+  d.appendChild(el(tag,attrs,...children));return d;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded",async()=>{
+  const data=await fbLoad();
+  state.appointments=data.appointments;
+  state.clients=data.clients;
+  state.services=data.services;
+  document.getElementById("loader").style.display="none";
+  document.getElementById("app").style.display="flex";
+  render();
+});
+</script>
+</body>
+</html>
